@@ -11,6 +11,8 @@ function start() {
     stage.addChild(hanoi);
     centerHanoi();
     stage.addEventListener(Event.RESIZE, centerHanoi);
+
+    hanoi.moveDisk(0, 2);
 }
 
 // Misc functions
@@ -65,7 +67,7 @@ function Peg() {
     this.graphics.drawRect(-20, -360, 40, 420);
     this.graphics.endFill();
 
-    this.stack = new Array();
+    this.stack = [];
 }
 
 Peg.prototype = new Sprite();
@@ -106,7 +108,7 @@ function Hanoi() {
     for (var i = 5; i > 0; i--) {
 	var disk = new Disk(i);
 
-	this.pegs[0].push(new Disk(i));
+	this.pegs[0].push(disk);
 	this.addChild(disk);
 
 	var startPosition = this.diskDestination(0, -i + 5);
@@ -118,16 +120,19 @@ function Hanoi() {
 Hanoi.prototype = new Sprite();
 
 Hanoi.prototype.moveDisk = function(source, destination) {
-    if (!this.pegs[source].length) {
+    if (!this.pegs[source].stack.length) {
 	console.log("DISK MOVE ERROR: Source peg `" + source + "` doesn't have any disks");
 	return false;
     }
 
-    var sourcePeg = this.pegs[source].pop();
-    this.pegs[destination].push(sourcePeg);
+    var disk = this.pegs[source].pop();
+    this.pegs[destination].push(disk);
 
-    var moveTo = this.diskDestination(destination, this.pegs[destination].length - 1);
-    Tweener.addTween(sourcePeg, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', time: 1});
+    var moveTo = this.diskDestination(destination, this.pegs[destination].stack.length - 1);
+    //Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', time: 0.5});
+    Tweener.addTween(disk, {x: disk.x, y: -450, transition: 'easeInOutQuad', time: 0.2});
+    Tweener.addTween(disk, {x: moveTo.x, y: -450, transition: 'easeInOutQuad', delay: 0.2, time: 0.3});
+    Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', delay: 0.5, time: 0.2});
 }
 
 Hanoi.prototype.diskDestination = function(peg, level) {
