@@ -7,7 +7,7 @@ var stage, hanoi;
 function start() {
     stage = new Stage('c');
 
-    hanoi = new Hanoi(5);
+    hanoi = new Hanoi(8);
     stage.addChild(hanoi);
     centerHanoi();
     stage.addEventListener(Event.RESIZE, centerHanoi);
@@ -24,7 +24,7 @@ function color(r, g, b) { return ((r << 8) + g << 8) + b }
 
 function centerHanoi() {
     hanoi.x = stage.stageWidth/2;
-    hanoi.y = stage.stageHeight/1.5;
+    hanoi.y = (stage.stageHeight + hanoi.numDisks*60)/2;
 }
 
 function displaySolution(currentMove) {
@@ -56,7 +56,8 @@ Array.prototype.last = function() {
 function Disk(size) {
     Sprite.call(this);
 
-    this.graphics.beginFill(Math.random()*0xffffff, 0.7);
+    var rc = function() { return Math.random()*180 }
+    this.graphics.beginFill(color(rc(), rc(), rc()), 0.7);
     this.graphics.drawRect(-25*size - 20, 0, 50*size + 40, 50);
     this.graphics.endFill();
 
@@ -75,7 +76,7 @@ function Peg(numDisks) {
     Sprite.call(this);
 
     this.graphics.beginFill(0x555555, 1);
-    this.graphics.drawRect(-20, -(numDisks - 1)*60, 40, numDisks*60);
+    this.graphics.drawRect(-20, -numDisks*60, 40, numDisks*60);
     this.graphics.endFill();
 
     this.stack = [];
@@ -102,7 +103,7 @@ function Hanoi(numDisks) {
     Sprite.call(this);
 
     this.graphics.beginFill(0x333333, 1);
-    this.graphics.drawRect(-450, 60, 900, 50);
+    this.graphics.drawRect(-450, 0, 900, 50);
     this.graphics.endFill();
 
     this.numDisks = numDisks;
@@ -142,13 +143,13 @@ Hanoi.prototype.moveDisk = function(source, destination) {
 
     var moveTo = this.diskDestination(destination, this.pegs[destination].stack.length - 1);
     //Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', time: 0.5});
-    Tweener.addTween(disk, {x: disk.x, y: -this.numDisks*60, transition: 'easeInOutQuad', time: 0.2});
-    Tweener.addTween(disk, {x: moveTo.x, y: -this.numDisks*60, transition: 'easeInOutQuad', delay: 0.2, time: 0.3});
+    Tweener.addTween(disk, {x: disk.x, y: -(this.numDisks + 1)*60, transition: 'easeInOutQuad', time: 0.2});
+    Tweener.addTween(disk, {x: moveTo.x, y: -(this.numDisks + 1)*60, transition: 'easeInOutQuad', delay: 0.2, time: 0.3});
     Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', delay: 0.5, time: 0.2});
 }
 
 Hanoi.prototype.diskDestination = function(peg, level) {
-    return {x: this.pegs[peg].x, y: -level*60}
+    return {x: this.pegs[peg].x, y: -(level + 1)*60}
 }
 
 Hanoi.prototype.solve = function() {
