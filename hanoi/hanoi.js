@@ -1,21 +1,22 @@
 // Global objects
 
 var stage, hanoi;
+var DISK_HEIGHT = 50;
+var DISK_MIN_WIDTH = 80;
+var DISK_MAX_WIDTH = 300;
 
 // Entry point
 
 function start() {
     stage = new Stage('c');
 
-    hanoi = new Hanoi(8);
+    hanoi = new Hanoi(7);
     stage.addChild(hanoi);
     centerHanoi();
     stage.addEventListener(Event.RESIZE, centerHanoi);
 
     hanoi.solve();
     displaySolution(0);
-    //hanoi.moveDisk(0, 2);
-
 }
 
 // Misc functions
@@ -24,7 +25,7 @@ function color(r, g, b) { return ((r << 8) + g << 8) + b }
 
 function centerHanoi() {
     hanoi.x = stage.stageWidth/2;
-    hanoi.y = (stage.stageHeight + hanoi.numDisks*60)/2;
+    hanoi.y = (stage.stageHeight + hanoi.numDisks*(DISK_HEIGHT + 10))/2;
 }
 
 function displaySolution(currentMove) {
@@ -53,12 +54,13 @@ Array.prototype.last = function() {
 
 // Disk
 
-function Disk(size) {
+function Disk(size, numDisks) {
     Sprite.call(this);
 
     var rc = function() { return Math.random()*180 }
     this.graphics.beginFill(color(rc(), rc(), rc()), 0.7);
-    this.graphics.drawRect(-25*size - 20, 0, 50*size + 40, 50);
+    var w = (DISK_MAX_WIDTH - DISK_MIN_WIDTH)/(numDisks - 1)*(size - 1) + DISK_MIN_WIDTH;
+    this.graphics.drawRect(-w/2, 0, w, DISK_HEIGHT);
     this.graphics.endFill();
 
     this.size = size;
@@ -76,7 +78,7 @@ function Peg(numDisks) {
     Sprite.call(this);
 
     this.graphics.beginFill(0x555555, 1);
-    this.graphics.drawRect(-20, -numDisks*60, 40, numDisks*60);
+    this.graphics.drawRect(-20, -numDisks*(DISK_HEIGHT + 10), 40, numDisks*(DISK_HEIGHT + 10));
     this.graphics.endFill();
 
     this.stack = [];
@@ -103,7 +105,7 @@ function Hanoi(numDisks) {
     Sprite.call(this);
 
     this.graphics.beginFill(0x333333, 1);
-    this.graphics.drawRect(-450, 0, 900, 50);
+    this.graphics.drawRect(-450, 0, 900, DISK_HEIGHT);
     this.graphics.endFill();
 
     this.numDisks = numDisks;
@@ -119,7 +121,7 @@ function Hanoi(numDisks) {
     }
 
     for (var i = numDisks; i > 0; i--) {
-	var disk = new Disk(i);
+	var disk = new Disk(i, numDisks);
 
 	this.pegs[0].push(disk);
 	this.addChild(disk);
@@ -143,13 +145,13 @@ Hanoi.prototype.moveDisk = function(source, destination) {
 
     var moveTo = this.diskDestination(destination, this.pegs[destination].stack.length - 1);
     //Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', time: 0.5});
-    Tweener.addTween(disk, {x: disk.x, y: -(this.numDisks + 1)*60, transition: 'easeInOutQuad', time: 0.2});
-    Tweener.addTween(disk, {x: moveTo.x, y: -(this.numDisks + 1)*60, transition: 'easeInOutQuad', delay: 0.2, time: 0.3});
+    Tweener.addTween(disk, {x: disk.x, y: -(this.numDisks + 1)*(DISK_HEIGHT + 10), transition: 'easeInOutQuad', time: 0.2});
+    Tweener.addTween(disk, {x: moveTo.x, y: -(this.numDisks + 1)*(DISK_HEIGHT + 10), transition: 'easeInOutQuad', delay: 0.2, time: 0.3});
     Tweener.addTween(disk, {x: moveTo.x, y: moveTo.y, transition: 'easeInOutQuad', delay: 0.5, time: 0.2});
 }
 
 Hanoi.prototype.diskDestination = function(peg, level) {
-    return {x: this.pegs[peg].x, y: -(level + 1)*60}
+    return {x: this.pegs[peg].x, y: -(level + 1)*(DISK_HEIGHT + 10)}
 }
 
 Hanoi.prototype.solve = function() {
