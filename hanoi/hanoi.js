@@ -1,7 +1,7 @@
 // Global objects
 
-var stage, hanoi;
-var DISK_HEIGHT = 25;
+var stage, hanoi, movesText;
+var DISK_HEIGHT = 30;
 var DISK_MIN_WIDTH = 80;
 var DISK_MAX_WIDTH = 300;
 
@@ -14,6 +14,14 @@ function start() {
     stage.addChild(hanoi);
     centerHanoi();
     stage.addEventListener(Event.RESIZE, centerHanoi);
+
+    movesText = new TextField();
+    movesText.setTextFormat(new TextFormat(
+	null, 30, 0xaaaaaa, true, false, null, null
+    ));
+    stage.addChild(movesText);
+    movesText.x = movesText.y = 25;
+    movesText.width = 200;
 
     hanoi.solve();
     displaySolution(0);
@@ -35,6 +43,7 @@ function centerHanoi() {
 
 function displaySolution(currentMove) {
     hanoi.moveDisk(hanoi.solution[currentMove][0], hanoi.solution[currentMove][1]);
+    movesText.text = (currentMove + 1) + " / " + hanoi.solution.length;
 
     if (currentMove < hanoi.solution.length - 1)
 	setTimeout('displaySolution(' + (currentMove + 1) + ')', 500);
