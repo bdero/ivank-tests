@@ -1,7 +1,7 @@
 // Global objects
 
 var stage, hanoi;
-var DISK_HEIGHT = 50;
+var DISK_HEIGHT = 25;
 var DISK_MIN_WIDTH = 80;
 var DISK_MAX_WIDTH = 300;
 
@@ -24,8 +24,13 @@ function start() {
 function color(r, g, b) { return ((r << 8) + g << 8) + b }
 
 function centerHanoi() {
+    // Center
     hanoi.x = stage.stageWidth/2;
     hanoi.y = (stage.stageHeight + hanoi.numDisks*(DISK_HEIGHT + 10))/2;
+
+    // Scale
+    hanoi.scaleX = stage.stageWidth/(900 + 50);
+    //hanoi.scaleY = stage.stageHeight/(hanoi.numDisks*(DISK_HEIGHT + 10));
 }
 
 function displaySolution(currentMove) {
