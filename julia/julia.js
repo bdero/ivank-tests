@@ -57,7 +57,7 @@ Complex.prototype.square = function() {
 function drawJulia() {
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
-	juliaRender(new Complex(0.25, 0), new Point(-2, -2), new Point(2, 2))
+	juliaRender(new Complex(Math.random()*3 - 1.5, Math.random()*3 - 1.5), new Point(-2, -2), new Point(2, 2))
     );
 }
 
@@ -86,9 +86,9 @@ function juliaRender(offset, displayMin, displayMax) {
 	    var red, green, blue;
 	    if (escaped != undefined) {
 		var escapeTime = escaped/MAX_ITERATIONS;
-		red = 0xff*escapeTime;
-		blue = 0xff - 0xff*escapeTime;
-		green = 0x00;
+		red = (-Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
+		green = Math.sin(escapeTime*Math.PI)*0xff;
+		blue = (Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
 	    } else {
 		red = green = blue = 0x00;
 	    }
