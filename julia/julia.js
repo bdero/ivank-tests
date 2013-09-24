@@ -1,15 +1,16 @@
 // Global variables
 
-var MAX_ITERATIONS = 50;
-var JULIA_BOUNDS = new Rectangle(-1, -1, 2, 2);
+var MAX_ITERATIONS = 30;
+var JULIA_BOUNDS = new Rectangle(-10, -10, 20, 20);
 
-var stage; var b;
+var stage, b;
 
 // System functions
 
 function start() {
     stage = new Stage('c');
     b = new Bitmap(newStageBitmap());
+    stage.addChild(b);
 
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
     stage.addEventListener(Event.ENTER_FRAME, drawJulia);
@@ -46,7 +47,7 @@ Complex.prototype.multiply = function(other) {
 
 Complex.prototype.square = function() {
     return new Complex(
-	this.r*this.r + this.i*this.i,
+	this.r*this.r - this.i*this.i,
 	2*this.r*this.i
     );
 }
@@ -56,13 +57,13 @@ Complex.prototype.square = function() {
 function drawJulia() {
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
-	juliaRender(new Point(0, 0), new Point(-1, -1), new Point(1, 1))
+	juliaRender(new Complex(0.25, 0), new Point(-2, -2), new Point(2, 2))
     );
 }
 
-function juliaRender(complex, displayMin, displayMax) {
+function juliaRender(offset, displayMin, displayMax) {
     var buff = new Uint8Array(b.bitmapData.width*b.bitmapData.height*4);
-var asdf = 0;
+
     for (var h = 0; h < b.bitmapData.height; h++) {
 	var hp = h/b.bitmapData.height;
 	var hInput = (displayMax.y - displayMin.y)*hp + displayMin.y;
@@ -71,33 +72,29 @@ var asdf = 0;
 	    var wp = w/b.bitmapData.width;
 	    var wInput = (displayMax.x - displayMin.x)*wp + displayMin.x;
 
-	    var pixel = new Point(wInput, hInput);
-	    var escaped;
+	    var pixel = new Complex(wInput, hInput);
+	    var escaped = undefined;
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
-		pixel.setTo(
-		    pixel.x*pixel.x + complex.x,
-		    pixel.y*pixel.y + complex.y
-		);
+		pixel = pixel.square().add(offset);
 
-		if (!JULIA_BOUNDS.containsPoint(pixel)) {
+		if (!JULIA_BOUNDS.containsPoint(new Point(pixel.r, pixel.i))) {
 		    escaped = i;
 		    break;
 		}
 	    }
 
 	    var red, green, blue;
-	    if (escaped) {
-		console.log("escape");
-		red = green = blue = 0xaa;
+	    if (escaped != undefined) {
+		var escapeTime = escaped/MAX_ITERATIONS;
+		red = 0xff*escapeTime;
+		blue = 0xff - 0xff*escapeTime;
+		green = 0x00;
 	    } else {
-		red = green = blue = 0x55;
-		asdf++;
+		red = green = blue = 0x00;
 	    }
 
-	    buff.set([red, green, blue, 0x00], (h*b.bitmapData.width + w)*4);
+	    buff.set([red, green, blue, 0xff], (h*b.bitmapData.width + w)*4);
 	}
     }
-    console.log(b.bitmapData.rect);
-    console.log(asdf);
     return buff;
 }
