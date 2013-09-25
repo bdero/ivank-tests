@@ -1,7 +1,6 @@
 // Global variables
 
 var MAX_ITERATIONS = 50;
-//var JULIA_BOUNDS = new Rectangle(-10, -10, 20, 20);
 var JULIA_BOUND = 10*10;
 
 var stage, b, v;
@@ -91,10 +90,10 @@ Complex.prototype.square = function() {
 
 function updateJulia() {
     v.zoom*=1.1;
+
     b.bitmapData.setPixels(
-	//new Rectangle(0, 0, b.bitmapData.width, 30),
 	b.bitmapData.rect,
-	juliaRender(new Complex(-0.835, -0.2321/*Math.random()*3 - 1.5, Math.random()*3 - 1.5*/), v)
+	juliaRender(new Complex(-0.835, -0.2321), v)
     );
 }
 
@@ -116,7 +115,7 @@ function juliaRender(offset, viewport) {
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
 		pixel = pixel.square().add(offset);
 
-		if (pixel.r*pixel.r + pixel.i*pixel.i > JULIA_BOUND) {//!JULIA_BOUNDS.containsPoint(new Point(pixel.r, pixel.i))) {
+		if (pixel.r*pixel.r + pixel.i*pixel.i > JULIA_BOUND) {
 		    escaped = i;
 		    break;
 		}
