@@ -3,7 +3,7 @@
 var MAX_ITERATIONS = 50;
 var JULIA_BOUND = 10*10;
 
-var stage, b, v;
+var stage, b, v, c;
 
 // System functions
 
@@ -13,6 +13,8 @@ function start() {
     stage.addChild(b);
 
     v = new Viewport(new Point(0, 0), 1);
+    c = new Controller();
+    stage.addChild(c);
 
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
     stage.addEventListener(Event.ENTER_FRAME, updateJulia);
@@ -35,6 +37,28 @@ Rectangle.prototype.right = function() { return this.x + this.width }
 Rectangle.prototype.top = function() {return this.y }
 
 Rectangle.prototype.bottom = function() { return this.y + this.height }
+
+// Controller
+
+function Controller() {
+    InteractiveObject.call(this);
+
+    this.drag = false;
+    this.clickX = this.clickY = 0;
+
+    stage.addEventListener(MouseEvent.MOUSE_DOWN, this.mouseDown);
+    stage.addEventListener(MouseEvent.MOUSE_UP, this.mouseUp);
+}
+
+Controller.prototype = new InteractiveObject();
+
+Controller.prototype.mouseDown = function(e) {
+    this.drag = true;
+}
+
+Controller.prototype.mouseUp = function(e) {
+    this.drag = false;
+}
 
 // Viewport
 
@@ -100,7 +124,9 @@ function updateJulia() {
 function juliaRender(offset, viewport) {
     var vr = viewport.getRect();
 
-    var buff = new Uint8Array(b.bitmapData.width*b.bitmapData.height*4);
+    var data = new ArrayBuffer(b.bitmapData.width*b.bitmapData.height*4);
+    var img = new Uint32Array(data); // ArrayBuffer view used to set pixels
+    var buff = new Uint8Array(data); // ArrayBuffer view to return
 
     for (var h = 0; h < b.bitmapData.height; h++) {
 	var hp = h/b.bitmapData.height;
@@ -131,7 +157,7 @@ function juliaRender(offset, viewport) {
 		red = green = blue = 0x00;
 	    }
 
-	    buff.set([red, green, blue, 0xff], (h*b.bitmapData.width + w)*4);
+	    img[h*b.bitmapData.width + w] = (0xff000000 | red | green << 8 | blue << 16);
 	}
     }
     return buff;
