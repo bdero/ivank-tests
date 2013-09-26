@@ -133,6 +133,13 @@ Complex.prototype.square = function() {
     );
 }
 
+Complex.prototype.squareAdd = function(other) {
+    this.set(
+	this.r*this.r - this.i*this.i + other.r,
+	2*this.r*this.i + other.i
+    );
+}
+
 // Julia set functions
 
 function updateJulia() {
@@ -153,18 +160,17 @@ function juliaRender(offset, viewport) {
 
     var pixel = new Complex();
 
+    var wInput, hInput, escaped;
     for (var h = 0; h < b.bitmapData.height; h++) {
-	var hp = h/b.bitmapData.height;
-	var hInput = vr.height*hp + vr.y;
+	hInput = vr.height*(h/b.bitmapData.height) + vr.y;
 
 	for (var w = 0; w < b.bitmapData.width; w++) {
-	    var wp = w/b.bitmapData.width;
-	    var wInput = vr.width*wp + vr.x;
+	    wInput = vr.width*(w/b.bitmapData.width) + vr.x;
 
 	    pixel.set(wInput, hInput);
 	    var escaped = undefined;
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
-		pixel.square(); pixel.add(offset);
+		pixel.squareAdd(offset);
 
 		if (pixel.r*pixel.r + pixel.i*pixel.i > JULIA_BOUND) {
 		    escaped = i;
