@@ -49,8 +49,8 @@ function generateColors() {
     }
 }
 
-// Rectangle extensions
-
+// Rectangle extensions (unused)
+/*
 Rectangle.prototype.left = function() { return this.x }
 
 Rectangle.prototype.right = function() { return this.x + this.width }
@@ -58,27 +58,59 @@ Rectangle.prototype.right = function() { return this.x + this.width }
 Rectangle.prototype.top = function() {return this.y }
 
 Rectangle.prototype.bottom = function() { return this.y + this.height }
+*/
+// Point extensions (unused)
+/*
+Point.prototype.difference = function(other) {
+    return new Point(
+	this.x - other.x, this.y - other.y
+    );
+}
 
+Point.prototype.addFrom = function(other) {
+    this.x += other.x;
+    this.y += other.y;
+}
+*/
 // Controller - handles and reacts to input
 
 function Controller() {
     InteractiveObject.call(this);
 
     this.drag = false;
-    this.clickX = this.clickY = 0;
+    this.dragStart = new Point();
+    console.log(this.dragStart);
+    this.viewportDragStart = new Point();
 
-    stage.addEventListener(MouseEvent.MOUSE_DOWN, this.mouseDown);
-    stage.addEventListener(MouseEvent.MOUSE_UP, this.mouseUp);
+    stage.addEventListener2(MouseEvent.MOUSE_DOWN, this.mouseDown, this);
+    stage.addEventListener2(MouseEvent.MOUSE_UP, this.mouseUp, this);
+    stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 }
 
 Controller.prototype = new InteractiveObject();
 
-Controller.prototype.mouseDown = function(e) {
+Controller.prototype.mouseDown = function() {
     this.drag = true;
+    console.log(this.dragStart);
+    this.dragStart.setTo(stage.mouseX, stage.mouseY);
+    this.viewportDragStart.copyFrom(v.center);
 }
 
-Controller.prototype.mouseUp = function(e) {
+Controller.prototype.mouseUp = function() {
     this.drag = false;
+}
+
+Controller.prototype.mouseMove = function() {
+    if (this.drag) {
+	var viewportRect = v.getRect();
+	var dragRatio = viewportRect.width/stage.stageWidth;
+	v.center.setTo(
+	    this.viewportDragStart.x
+		- (stage.mouseX - this.dragStart.x)*dragRatio,
+	    this.viewportDragStart.y
+		- (stage.mouseY - this.dragStart.y)*dragRatio
+	);
+    }
 }
 
 // Viewport
@@ -113,7 +145,7 @@ Complex.prototype.set = function(r, i) {
     this.r = r;
     this.i = i;
 }
-
+/*
 Complex.prototype.add = function(other) {
     this.r += other.r;
     this.i += other.i;
@@ -132,7 +164,7 @@ Complex.prototype.square = function() {
 	2*this.r*this.i
     );
 }
-
+*/
 Complex.prototype.squareAdd = function(other) {
     this.set(
 	this.r*this.r - this.i*this.i + other.r,
@@ -143,7 +175,7 @@ Complex.prototype.squareAdd = function(other) {
 // Julia set functions
 
 function updateJulia() {
-    v.zoom*=1.1;
+    //v.zoom*=1.1;
 
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
