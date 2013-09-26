@@ -4,10 +4,15 @@ var MAX_ITERATIONS = 50;
 var JULIA_BOUND = 10*10;
 
 var stage, b, v, c;
+var colors;
 
 // System functions
 
 function start() {
+    // Precompute colors
+    generateColors();
+
+    // Set up stage, bitmap, viewport, and controller
     stage = new Stage('c');
     b = new Bitmap(newStageBitmap());
     stage.addChild(b);
@@ -16,6 +21,7 @@ function start() {
     c = new Controller();
     stage.addChild(c);
 
+    // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
     stage.addEventListener(Event.ENTER_FRAME, updateJulia);
 }
@@ -28,6 +34,21 @@ function newStageBitmap() {
     return BitmapData.empty(stage.stageWidth, stage.stageHeight);
 }
 
+function generateColors() {
+    colors = new Uint32Array(MAX_ITERATIONS);
+
+    var escapeTime, red, green, blue;
+    for (var i = 0; i < colors.length; i++) {
+	var escapeTime = i/MAX_ITERATIONS;
+
+	red = (-Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
+	green = Math.sin(escapeTime*Math.PI)*0xff;
+	blue = (Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
+
+	colors[i] = (0xff000000 | red | green << 8 | blue << 16);
+    }
+}
+
 // Rectangle extensions
 
 Rectangle.prototype.left = function() { return this.x }
@@ -38,7 +59,7 @@ Rectangle.prototype.top = function() {return this.y }
 
 Rectangle.prototype.bottom = function() { return this.y + this.height }
 
-// Controller
+// Controller - handles and reacts to input
 
 function Controller() {
     InteractiveObject.call(this);
@@ -151,17 +172,7 @@ function juliaRender(offset, viewport) {
 		}
 	    }
 
-	    var red, green, blue;
-	    if (escaped != undefined) {
-		var escapeTime = escaped/MAX_ITERATIONS;
-		red = (-Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
-		green = Math.sin(escapeTime*Math.PI)*0xff;
-		blue = (Math.cos(escapeTime*Math.PI) + 1)/2*0xff;
-	    } else {
-		red = green = blue = 0x00;
-	    }
-
-	    img[h*b.bitmapData.width + w] = (0xff000000 | red | green << 8 | blue << 16);
+	    img[h*b.bitmapData.width + w] = escaped == undefined ? 0xff000000 : colors[escaped];
 	}
     }
     return buff;
