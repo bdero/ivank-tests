@@ -1,7 +1,7 @@
 // Global variables
 
 var MAX_ITERATIONS = 50;
-var JULIA_BOUND = 10*10;
+var JULIA_BOUND = 10*10; // Squared, so we don't have to when rendering
 
 var stage, b, v, c;
 var colors;
@@ -19,7 +19,6 @@ function start() {
 
     v = new Viewport(new Point(0, 0), 1);
     c = new Controller();
-    stage.addChild(c);
 
     // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
@@ -75,8 +74,6 @@ Point.prototype.addFrom = function(other) {
 // Controller - handles and reacts to input
 
 function Controller() {
-    InteractiveObject.call(this);
-
     this.drag = false;
     this.dragStart = new Point();
     console.log(this.dragStart);
@@ -87,11 +84,9 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 }
 
-Controller.prototype = new InteractiveObject();
-
 Controller.prototype.mouseDown = function() {
     this.drag = true;
-    console.log(this.dragStart);
+
     this.dragStart.setTo(stage.mouseX, stage.mouseY);
     this.viewportDragStart.copyFrom(v.center);
 }
@@ -200,7 +195,7 @@ function juliaRender(offset, viewport) {
 	    wInput = vr.width*(w/b.bitmapData.width) + vr.x;
 
 	    pixel.set(wInput, hInput);
-	    var escaped = undefined;
+	    var escaped = null;
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
 		pixel.squareAdd(offset);
 
