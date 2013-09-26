@@ -85,26 +85,28 @@ Viewport.prototype.getRect = function() {
 // Compelx - complex number representation for arithmetic
 
 function Complex(r, i) {
+    this.set(r, i);
+}
+
+Complex.prototype.set = function(r, i) {
     this.r = r;
     this.i = i;
 }
 
 Complex.prototype.add = function(other) {
-    return new Complex(
-	this.r + other.r,
-	this.i + other.i
-    );
+    this.r += other.r;
+    this.i += other.i;
 }
 
 Complex.prototype.multiply = function(other) {
-    return new Complex(
+    this.set(
 	this.r*other.r - this.i*other.i,
 	this.r*other.i + this.i*other.r
     );
 }
 
 Complex.prototype.square = function() {
-    return new Complex(
+    this.set(
 	this.r*this.r - this.i*this.i,
 	2*this.r*this.i
     );
@@ -128,6 +130,8 @@ function juliaRender(offset, viewport) {
     var img = new Uint32Array(data); // ArrayBuffer view used to set pixels
     var buff = new Uint8Array(data); // ArrayBuffer view to return
 
+    var pixel = new Complex();
+
     for (var h = 0; h < b.bitmapData.height; h++) {
 	var hp = h/b.bitmapData.height;
 	var hInput = vr.height*hp + vr.y;
@@ -136,10 +140,10 @@ function juliaRender(offset, viewport) {
 	    var wp = w/b.bitmapData.width;
 	    var wInput = vr.width*wp + vr.x;
 
-	    var pixel = new Complex(wInput, hInput);
+	    pixel.set(wInput, hInput);
 	    var escaped = undefined;
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
-		pixel = pixel.square().add(offset);
+		pixel.square(); pixel.add(offset);
 
 		if (pixel.r*pixel.r + pixel.i*pixel.i > JULIA_BOUND) {
 		    escaped = i;
