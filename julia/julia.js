@@ -167,7 +167,7 @@ Viewport.prototype.getRect = function() {
 
 // Compelx - complex number representation for arithmetic
 
-function Complex(r, i) {
+function Complex(r = 0, i = 0) {
     this.set(r, i);
 }
 
@@ -183,44 +183,73 @@ Complex.prototype.squareAdd = function(other) {
     );
 }
 
+// Renderer
+
+function Renderer(maxTime) {
+    this.startHeight = 0;
+    this.maxTime = maxTime; // Milliseconds
+    this.offset = new Complex();
+}
+
+Renderer.prototype.render = function() {
+    var buff = juliaRender(startHeight, offset, v);
+    var deltaHeight = buff.length/4/b.bitmapData.width;
+
+    if (deltaHeight%1 != 0) return; // The width of the b.bitmapData changed
+
+    var renderRect = new Rectangle(
+	0, this.startHeight, b.bitmapData.width, deltaHeight
+    );
+    b.bitmapData.setPixels(renderRect, buff, v);
+}
+
 // Julia set functions
 
 function updateJulia() {
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
-	juliaRender(new Complex(-0.835, -0.2321), v)
+	juliaRender(0, new Complex(-0.835, -0.2321), v)
     );
 }
 
-function juliaRender(offset, viewport) {
+function juliaRender(startHeight, offset, viewport) {
     var vr = viewport.getRect();
 
-    var data = new ArrayBuffer(b.bitmapData.width*b.bitmapData.height*4);
+    // Set up the buffer
+    var data = new ArrayBuffer(
+	b.bitmapData.width*(b.bitmapData.height - startHeight)*4
+    );
     var img = new Uint32Array(data); // ArrayBuffer view used to set pixels
     var buff = new Uint8Array(data); // ArrayBuffer view to return
 
     var pixel = new Complex();
 
+    // Loop through each pixel in the buffer
     var wInput, hInput, escaped;
-    for (var h = 0; h < b.bitmapData.height; h++) {
+    for (var h = startHeight; h < b.bitmapData.height; h++) { // Rows
 	hInput = vr.height*(h/b.bitmapData.height) + vr.y;
 
-	for (var w = 0; w < b.bitmapData.width; w++) {
+	for (var w = 0; w < b.bitmapData.width; w++) { // Columns
 	    wInput = vr.width*(w/b.bitmapData.width) + vr.x;
 
+	    // Figure out if the pixel escapes and how many iterations it takes
 	    pixel.set(wInput, hInput);
-	    var escaped = null;
+	    escaped = null;
 	    for (var i = 0; i < MAX_ITERATIONS; i++) {
 		pixel.squareAdd(offset);
 
+		// Check if the number escaped
 		if (pixel.r*pixel.r + pixel.i*pixel.i > JULIA_BOUND) {
 		    escaped = i;
 		    break;
 		}
 	    }
 
-	    img[h*b.bitmapData.width + w] = escaped == undefined ? 0xff000000 : colors[escaped];
+	    // Set the resulting color
+	    img[h*b.bitmapData.width + w] =
+		escaped == undefined ? 0xff000000 : colors[escaped];
 	}
     }
+
     return buff;
 }
