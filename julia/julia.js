@@ -1,6 +1,6 @@
 // Global variables
 
-var MAX_ITERATIONS = 50;
+var MAX_ITERATIONS = 100;
 var JULIA_BOUND = 10*10; // Squared, so we don't have to when rendering
 
 var stage, b, v, c;
@@ -48,29 +48,6 @@ function generateColors() {
     }
 }
 
-// Rectangle extensions (unused)
-/*
-Rectangle.prototype.left = function() { return this.x }
-
-Rectangle.prototype.right = function() { return this.x + this.width }
-
-Rectangle.prototype.top = function() {return this.y }
-
-Rectangle.prototype.bottom = function() { return this.y + this.height }
-*/
-// Point extensions (unused)
-/*
-Point.prototype.difference = function(other) {
-    return new Point(
-	this.x - other.x, this.y - other.y
-    );
-}
-
-Point.prototype.addFrom = function(other) {
-    this.x += other.x;
-    this.y += other.y;
-}
-*/
 // Controller - handles and reacts to input
 
 function Controller() {
@@ -82,6 +59,7 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_UP, this.mouseUp, this);
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 
+    // Add zoom HUD
     var buttonRect = new Rectangle(10, 10, 50, 50);
     var zoomIn = new ZoomButton(buttonRect, 0x999999, true);
     buttonRect.y += zoomIn.height + 10;
@@ -145,17 +123,6 @@ function ZoomButton(rect, color, zoomIn) {
 	this.graphics.lineTo(rect.width/2, rect.height - 10);
     }
 
-    // Text label
-    /*
-    var label = new TextField();
-    label.setTextFormat(new TextFormat(
-	null, rect.height, 0xaaaaaa, true, false, TextFormatAlign.CENTER, null
-    ));
-    this.addChild(label);
-    label.x = label.y = 0;
-    label.width = rect.width;
-    label.height = rect.height;
-    */
     // Interaction
     this.mouseOut();
     this.addEventListener2(MouseEvent.MOUSE_OVER, this.mouseOver, this);
@@ -204,26 +171,7 @@ Complex.prototype.set = function(r, i) {
     this.r = r;
     this.i = i;
 }
-/*
-Complex.prototype.add = function(other) {
-    this.r += other.r;
-    this.i += other.i;
-}
 
-Complex.prototype.multiply = function(other) {
-    this.set(
-	this.r*other.r - this.i*other.i,
-	this.r*other.i + this.i*other.r
-    );
-}
-
-Complex.prototype.square = function() {
-    this.set(
-	this.r*this.r - this.i*this.i,
-	2*this.r*this.i
-    );
-}
-*/
 Complex.prototype.squareAdd = function(other) {
     this.set(
 	this.r*this.r - this.i*this.i + other.r,
@@ -234,8 +182,6 @@ Complex.prototype.squareAdd = function(other) {
 // Julia set functions
 
 function updateJulia() {
-    //v.zoom*=1.1;
-
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
 	juliaRender(new Complex(-0.835, -0.2321), v)
