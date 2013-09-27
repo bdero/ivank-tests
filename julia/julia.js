@@ -76,15 +76,27 @@ Point.prototype.addFrom = function(other) {
 function Controller() {
     this.drag = false;
     this.dragStart = new Point();
-    console.log(this.dragStart);
     this.viewportDragStart = new Point();
 
     stage.addEventListener2(MouseEvent.MOUSE_DOWN, this.mouseDown, this);
     stage.addEventListener2(MouseEvent.MOUSE_UP, this.mouseUp, this);
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
+
+    var buttonRect = new Rectangle(10, 10, 50, 50);
+    var zoomIn = new ZoomButton(buttonRect, 0x999999, true);
+    buttonRect.y += zoomIn.height + 10;
+    var zoomOut = new ZoomButton(buttonRect, 0x999999, false);
+
+    zoomIn.mouseClick = function() { v.zoom *= 1.5; }
+    zoomOut.mouseClick = function() { v.zoom /= 1.5; }
+    zoomIn.addEventListener2(MouseEvent.CLICK, zoomIn.mouseClick, zoomIn);
+    zoomOut.addEventListener2(MouseEvent.CLICK, zoomOut.mouseClick, zoomOut);
+
+    stage.addChild(zoomIn);
+    stage.addChild(zoomOut);
 }
 
-Controller.prototype.mouseDown = function() {
+Controller.prototype.mouseDown = function(e) {
     this.drag = true;
 
     this.dragStart.setTo(stage.mouseX, stage.mouseY);
@@ -106,6 +118,58 @@ Controller.prototype.mouseMove = function() {
 		- (stage.mouseY - this.dragStart.y)*dragRatio
 	);
     }
+}
+
+function ZoomButton(rect, color, zoomIn) {
+    Sprite.call(this);
+    this.buttonMode = true;
+    //this.mouseChildren = false;
+
+    // Set bounds
+    this.x = rect.x; this.y = rect.y;
+    this.width = rect.width; this.height = rect.height;
+
+    // Background box
+    this.graphics.beginFill(color, 0.5);
+    this.graphics.drawRoundRect(
+	0, 0, rect.width, rect.height, 20, 20
+    );
+    this.graphics.endFill();
+
+    // Lines
+    this.graphics.lineStyle(10, 0xdddddd, 1);
+    this.graphics.moveTo(10, rect.height/2);
+    this.graphics.lineTo(rect.width - 10, rect.height/2);
+    if (zoomIn) {
+	this.graphics.moveTo(rect.width/2, 10);
+	this.graphics.lineTo(rect.width/2, rect.height - 10);
+    }
+
+    // Text label
+    /*
+    var label = new TextField();
+    label.setTextFormat(new TextFormat(
+	null, rect.height, 0xaaaaaa, true, false, TextFormatAlign.CENTER, null
+    ));
+    this.addChild(label);
+    label.x = label.y = 0;
+    label.width = rect.width;
+    label.height = rect.height;
+    */
+    // Interaction
+    this.mouseOut();
+    this.addEventListener2(MouseEvent.MOUSE_OVER, this.mouseOver, this);
+    this.addEventListener2(MouseEvent.MOUSE_OUT, this.mouseOut, this);
+}
+
+ZoomButton.prototype = new Sprite();
+
+ZoomButton.prototype.mouseOver = function() {
+    this.alpha = 1;
+}
+
+ZoomButton.prototype.mouseOut = function() {
+    this.alpha = 0.6;
 }
 
 // Viewport
