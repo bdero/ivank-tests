@@ -75,10 +75,12 @@ function Controller() {
 }
 
 Controller.prototype.mouseDown = function(e) {
-    this.drag = true;
+    if (e.target === b) {
+	this.drag = true;
 
-    this.dragStart.setTo(stage.mouseX, stage.mouseY);
-    this.viewportDragStart.copyFrom(v.center);
+	this.dragStart.setTo(stage.mouseX, stage.mouseY);
+	this.viewportDragStart.copyFrom(v.center);
+    }
 }
 
 Controller.prototype.mouseUp = function() {
@@ -97,6 +99,8 @@ Controller.prototype.mouseMove = function() {
 	);
     }
 }
+
+// ZoomButton
 
 function ZoomButton(rect, color, zoomIn) {
     Sprite.call(this);
