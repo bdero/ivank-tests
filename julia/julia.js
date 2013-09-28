@@ -3,7 +3,7 @@
 var MAX_ITERATIONS = 100;
 var JULIA_BOUND = 10*10; // Squared, so we don't have to when rendering
 
-var stage, b, v, c;
+var stage, b, v, c, renderer;
 var colors;
 
 // System functions
@@ -19,10 +19,12 @@ function start() {
 
     v = new Viewport(new Point(0, 0), 1);
     c = new Controller();
+    renderer = new Renderer(50);
 
     // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
-    stage.addEventListener(Event.ENTER_FRAME, updateJulia);
+    stage.addEventListener2(Event.ENTER_FRAME, renderer.render, renderer);
+    //stage.addEventListener(Event.ENTER_FRAME, updateJulia);
 }
 
 function resetStageBitmap() {
@@ -188,31 +190,42 @@ Complex.prototype.squareAdd = function(other) {
 function Renderer(maxTime) {
     this.startHeight = 0;
     this.maxTime = maxTime; // Milliseconds
-    this.offset = new Complex();
+    this.randomOffset();
+    console.log("renderer init");
+}
+
+Renderer.prototype.randomOffset = function() {
+    var randomBound = function() { return Math.random()*2 - 1 }
+    this.offset = new Complex(randomBound(), randomBound());
 }
 
 Renderer.prototype.render = function() {
-    var buff = juliaRender(startHeight, offset, v);
-    var deltaHeight = buff.length/4/b.bitmapData.width;
+    if (this.startHeight >= b.bitmapData.height) this.startHeight = 0;
 
+    var buff = juliaRender(this.startHeight, this.maxTime, this.offset, v);
+    var deltaHeight = buff.length/4/b.bitmapData.width;
+    //console.log(buff.length, b.bitmapData.width, deltaHeight);
     if (deltaHeight%1 != 0) return; // The width of the b.bitmapData changed
 
     var renderRect = new Rectangle(
 	0, this.startHeight, b.bitmapData.width, deltaHeight
     );
     b.bitmapData.setPixels(renderRect, buff, v);
+
+    this.startHeight = (this.startHeight + deltaHeight)%b.bitmapData.height;
 }
 
 // Julia set functions
-
+/*
 function updateJulia() {
     b.bitmapData.setPixels(
 	b.bitmapData.rect,
 	juliaRender(0, new Complex(-0.835, -0.2321), v)
     );
 }
-
-function juliaRender(startHeight, offset, viewport) {
+*/
+function juliaRender(startHeight, maxTime, offset, viewport) {
+    var startTime = Date.now();
     var vr = viewport.getRect();
 
     // Set up the buffer
@@ -220,13 +233,16 @@ function juliaRender(startHeight, offset, viewport) {
 	b.bitmapData.width*(b.bitmapData.height - startHeight)*4
     );
     var img = new Uint32Array(data); // ArrayBuffer view used to set pixels
-    var buff = new Uint8Array(data); // ArrayBuffer view to return
+    //var buff; /*= new Uint8Array(data);*/ // ArrayBuffer view to return
 
     var pixel = new Complex();
 
     // Loop through each pixel in the buffer
-    var wInput, hInput, escaped;
-    for (var h = startHeight; h < b.bitmapData.height; h++) { // Rows
+    var h, wInput, hInput, escaped;
+    for (h = startHeight; h < b.bitmapData.height; h++) { // Rows
+	// Check if we're at or exceeding the maxTime
+	if (Date.now() - startTime >= maxTime) break;
+
 	hInput = vr.height*(h/b.bitmapData.height) + vr.y;
 
 	for (var w = 0; w < b.bitmapData.width; w++) { // Columns
@@ -246,10 +262,11 @@ function juliaRender(startHeight, offset, viewport) {
 	    }
 
 	    // Set the resulting color
-	    img[h*b.bitmapData.width + w] =
+	    img[(h - startHeight)*b.bitmapData.width + w] =
 		escaped == undefined ? 0xff000000 : colors[escaped];
 	}
     }
 
-    return buff;
+    //return buff;
+    return new Uint8Array(data, 0, (h - startHeight)*b.bitmapData.width*4);
 }
