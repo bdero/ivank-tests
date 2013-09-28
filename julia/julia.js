@@ -1,7 +1,7 @@
 // Global variables
 
-var MAX_ITERATIONS = 100;
-var JULIA_BOUND = 10*10; // Squared, so we don't have to when rendering
+var MAX_ITERATIONS = 150;
+var JULIA_BOUND = 15*15; // Squared, so we don't have to when rendering
 
 var stage, b, v, c, renderer;
 var colors;
@@ -19,7 +19,7 @@ function start() {
 
     v = new Viewport(new Point(0, 0), 1);
     c = new Controller();
-    renderer = new Renderer(50);
+    renderer = new Renderer(20);
 
     // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
@@ -61,18 +61,23 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 
     // Add zoom HUD
-    var buttonRect = new Rectangle(10, 10, 50, 50);
-    var zoomIn = new ZoomButton(buttonRect, 0x999999, true);
-    buttonRect.y += zoomIn.height + 10;
-    var zoomOut = new ZoomButton(buttonRect, 0x999999, false);
+    var distance = 10;
+    var buttonRect = new Rectangle(50 + distance*2, distance, 100, 50);
 
-    zoomIn.mouseClick = function() { v.zoom *= 1.5; }
-    zoomOut.mouseClick = function() { v.zoom /= 1.5; }
-    zoomIn.addEventListener2(MouseEvent.CLICK, zoomIn.mouseClick, zoomIn);
-    zoomOut.addEventListener2(MouseEvent.CLICK, zoomOut.mouseClick, zoomOut);
+    var randomOffset = new Button(buttonRect, 0x999999, null, "Random");
+    buttonRect.width = 50;
+    buttonRect.x -= buttonRect.width + distance;
+    var zoomIn = new Button(buttonRect, 0x999999, true);
+    buttonRect.y += zoomIn.height + distance;
+    var zoomOut = new Button(buttonRect, 0x999999, false);
+
+    zoomIn.setMouseClick(function() { v.zoom *= 1.5 });
+    zoomOut.setMouseClick(function() { v.zoom /= 1.5 });
+    randomOffset.setMouseClick(function() { renderer.randomOffset() });
 
     stage.addChild(zoomIn);
     stage.addChild(zoomOut);
+    stage.addChild(randomOffset);
 }
 
 Controller.prototype.mouseDown = function(e) {
@@ -101,9 +106,9 @@ Controller.prototype.mouseMove = function() {
     }
 }
 
-// ZoomButton
+// Button
 
-function ZoomButton(rect, color, zoomIn) {
+function Button(rect, color, zoomIn = null, text = null) {
     Sprite.call(this);
     this.buttonMode = true;
 
@@ -119,12 +124,19 @@ function ZoomButton(rect, color, zoomIn) {
     this.graphics.endFill();
 
     // Lines
-    this.graphics.lineStyle(10, 0xdddddd, 1);
-    this.graphics.moveTo(10, rect.height/2);
-    this.graphics.lineTo(rect.width - 10, rect.height/2);
-    if (zoomIn) {
-	this.graphics.moveTo(rect.width/2, 10);
-	this.graphics.lineTo(rect.width/2, rect.height - 10);
+    if (zoomIn != null) {
+	this.graphics.lineStyle(10, 0xdddddd, 1);
+	this.graphics.moveTo(10, rect.height/2);
+	this.graphics.lineTo(rect.width - 10, rect.height/2);
+	if (zoomIn) {
+	    this.graphics.moveTo(rect.width/2, 10);
+	    this.graphics.lineTo(rect.width/2, rect.height - 10);
+	}
+    }
+
+    // Text
+    if (text != null) {
+	var format = new TextFormat();
     }
 
     // Interaction
@@ -133,14 +145,20 @@ function ZoomButton(rect, color, zoomIn) {
     this.addEventListener2(MouseEvent.MOUSE_OUT, this.mouseOut, this);
 }
 
-ZoomButton.prototype = new Sprite();
+Button.prototype = new Sprite();
 
-ZoomButton.prototype.mouseOver = function() {
+Button.prototype.mouseOver = function() {
     this.alpha = 1;
 }
 
-ZoomButton.prototype.mouseOut = function() {
+Button.prototype.mouseOut = function() {
     this.alpha = 0.6;
+}
+
+Button.prototype.setMouseClick = function(action) {
+    this.mouseClick = action;
+    this.removeEventListener(MouseEvent.CLICK);
+    this.addEventListener2(MouseEvent.CLICK, this.mouseClick, this);
 }
 
 // Viewport
