@@ -108,7 +108,7 @@ Controller.prototype.mouseMove = function() {
 
 // Button
 
-function Button(rect, color, mouseClickAction = null, zoomIn = null, text = null) {
+function Button(rect, color, mouseClickAction = null, zoomIn = null, buttonText = null) {
     Sprite.call(this);
     this.buttonMode = true;
 
@@ -135,8 +135,15 @@ function Button(rect, color, mouseClickAction = null, zoomIn = null, text = null
     }
 
     // Text
-    if (text != null) {
-	var format = new TextFormat();
+    if (buttonText != null) {
+	this.text = new TextField()
+	this.text.setTextFormat(new TextFormat(
+	    "sans", 20, 0xdddddd, true, false, null, null
+	));
+	this.text.text = buttonText;
+	this.text.x = this.width/2 - this.text.textWidth/2;
+	this.text.y = this.height/2 - this.text.textHeight/2 + 4;
+	this.addChild(this.text);
     }
 
     // Interaction
@@ -190,7 +197,7 @@ Viewport.prototype.getRect = function() {
     );
 }
 
-// Compelx - complex number representation for arithmetic
+// Complex - complex number representation for arithmetic
 
 function Complex(r = 0, i = 0) {
     this.set(r, i);
