@@ -1,7 +1,7 @@
 // Global variables
 
 var MAX_ITERATIONS = 150;
-var JULIA_BOUND = 15*15; // Squared, so we don't have to when rendering
+var JULIA_BOUND = 10; // Squared, so we don't have to when rendering
 
 var stage, b, v, c, renderer;
 var colors;
@@ -143,6 +143,8 @@ function Button(rect, color, mouseClickAction = null, zoomIn = null, buttonText 
 	this.text.text = buttonText;
 	this.text.x = this.width/2 - this.text.textWidth/2;
 	this.text.y = this.height/2 - this.text.textHeight/2 + 4;
+	this.text.width = this.text.textWidth;
+	this.text.height = this.text.textHeight;
 	this.addChild(this.text);
     }
 
@@ -224,7 +226,7 @@ function Renderer(maxTime) {
 }
 
 Renderer.prototype.randomOffset = function() {
-    var randomBound = function() { return Math.random()*2 - 1 }
+    var randomBound = function() { return Math.random()*1.5 - 0.75 }
     this.offset = new Complex(randomBound(), randomBound());
 }
 
