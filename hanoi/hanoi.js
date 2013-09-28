@@ -10,7 +10,7 @@ var DISK_MAX_WIDTH = 300;
 function start() {
     stage = new Stage('c');
 
-    hanoi = new Hanoi(7);
+    hanoi = new Hanoi(9);
     stage.addChild(hanoi);
     centerHanoi();
     stage.addEventListener(Event.RESIZE, centerHanoi);
