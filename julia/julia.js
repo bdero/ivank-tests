@@ -1,6 +1,6 @@
 // Global variables
 
-var MAX_ITERATIONS = 150;
+var MAX_ITERATIONS = 100;
 var JULIA_BOUND = 10; // Squared, so we don't have to when rendering
 
 var stage, b, v, c, renderer;
@@ -62,7 +62,7 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 
     // Add buttons
-    var size = 50, space = 10, col = 0x999999;
+    var size = 65, space = 10, col = 0x999999;
     stage.addChild(new Button(
 	new Rectangle(space, space, size, size), col,
 	function() { v.zoom *= 1.5 }, true
@@ -86,8 +86,8 @@ function Controller() {
 	"monospace", 15, 0xdddddd, false, false, null, null
     ));
     this.hudText.x = space; this.hudText.y = space*3 + 2*size;
-    this.hudText.width = 162;
-    this.hudText.alpha = 0.7;
+    this.hudText.width = 215;
+    this.hudText.alpha = 0.8;
     stage.addChild(this.hudText);
 }
 
@@ -101,7 +101,7 @@ Controller.prototype.update = function() {
 }
 
 Controller.prototype.mouseDown = function(e) {
-    if (e.target === b) {
+    if (e.target === b || e.target === this.hudText) {
 	this.drag = true;
 
 	this.dragStart.setTo(stage.mouseX, stage.mouseY);
@@ -158,7 +158,7 @@ function Button(rect, color, mouseClickAction = null, zoomIn = null, buttonText 
     if (buttonText != null) {
 	this.text = new TextField()
 	this.text.setTextFormat(new TextFormat(
-	    "sans", 20, 0xdddddd, true, false, null, null
+	    "sans", 27, 0xdddddd, true, false, null, null
 	));
 	this.text.text = buttonText;
 	this.text.x = this.width/2 - this.text.textWidth/2;
