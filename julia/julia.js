@@ -17,13 +17,14 @@ function start() {
     b = new Bitmap(newStageBitmap());
     stage.addChild(b);
 
-    v = new Viewport(new Point(0, 0), 1);
     c = new Controller();
+    v = new Viewport(new Point(0, 0), 1);
     renderer = new Renderer(20);
 
     // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
     stage.addEventListener2(Event.ENTER_FRAME, renderer.render, renderer);
+    stage.addEventListener2(Event.ENTER_FRAME, c.update, c);
 }
 
 function resetStageBitmap() {
@@ -60,7 +61,7 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_UP, this.mouseUp, this);
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 
-    // Add zoom HUD
+    // Add buttons
     var size = 50, space = 10, col = 0x999999;
     stage.addChild(new Button(
 	new Rectangle(space, space, size, size), col,
@@ -78,6 +79,25 @@ function Controller() {
 	new Rectangle(space*2 + size, space*2 + size, 2*size, size), col,
 	function() { v.reset() }, null, "Reset"
     ));
+
+    // Add text
+    this.hudText = new TextField();
+    this.hudText.setTextFormat(new TextFormat(
+	"monospace", 15, 0xdddddd, false, false, null, null
+    ));
+    this.hudText.x = space; this.hudText.y = space*3 + 2*size;
+    this.hudText.width = 162;
+    this.hudText.alpha = 0.7;
+    stage.addChild(this.hudText);
+}
+
+Controller.prototype.update = function() {
+    this.hudText.text =
+	"Offset: " + renderer.offset.r + "\n" +
+	"        " + renderer.offset.i + "\n" +
+	"Pan   : " + v.center.x + "\n" +
+	"        " + v.center.y + "\n" +
+	"Zoom  : " + Math.sqrt(v.zoom);
 }
 
 Controller.prototype.mouseDown = function(e) {
