@@ -24,7 +24,6 @@ function start() {
     // Add event listeners for updating
     stage.addEventListener(Event.RESIZE, resetStageBitmap);
     stage.addEventListener2(Event.ENTER_FRAME, renderer.render, renderer);
-    //stage.addEventListener(Event.ENTER_FRAME, updateJulia);
 }
 
 function resetStageBitmap() {
@@ -107,7 +106,6 @@ Controller.prototype.mouseMove = function() {
 function ZoomButton(rect, color, zoomIn) {
     Sprite.call(this);
     this.buttonMode = true;
-    //this.mouseChildren = false;
 
     // Set bounds
     this.x = rect.x; this.y = rect.y;
@@ -191,7 +189,6 @@ function Renderer(maxTime) {
     this.startHeight = 0;
     this.maxTime = maxTime; // Milliseconds
     this.randomOffset();
-    console.log("renderer init");
 }
 
 Renderer.prototype.randomOffset = function() {
@@ -204,7 +201,7 @@ Renderer.prototype.render = function() {
 
     var buff = juliaRender(this.startHeight, this.maxTime, this.offset, v);
     var deltaHeight = buff.length/4/b.bitmapData.width;
-    //console.log(buff.length, b.bitmapData.width, deltaHeight);
+
     if (deltaHeight%1 != 0) return; // The width of the b.bitmapData changed
 
     var renderRect = new Rectangle(
@@ -216,14 +213,6 @@ Renderer.prototype.render = function() {
 }
 
 // Julia set functions
-/*
-function updateJulia() {
-    b.bitmapData.setPixels(
-	b.bitmapData.rect,
-	juliaRender(0, new Complex(-0.835, -0.2321), v)
-    );
-}
-*/
 function juliaRender(startHeight, maxTime, offset, viewport) {
     var startTime = Date.now();
     var vr = viewport.getRect();
@@ -233,8 +222,6 @@ function juliaRender(startHeight, maxTime, offset, viewport) {
 	b.bitmapData.width*(b.bitmapData.height - startHeight)*4
     );
     var img = new Uint32Array(data); // ArrayBuffer view used to set pixels
-    //var buff; /*= new Uint8Array(data);*/ // ArrayBuffer view to return
-
     var pixel = new Complex();
 
     // Loop through each pixel in the buffer
@@ -267,6 +254,5 @@ function juliaRender(startHeight, maxTime, offset, viewport) {
 	}
     }
 
-    //return buff;
     return new Uint8Array(data, 0, (h - startHeight)*b.bitmapData.width*4);
 }
