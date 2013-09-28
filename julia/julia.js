@@ -61,23 +61,23 @@ function Controller() {
     stage.addEventListener2(MouseEvent.MOUSE_MOVE, this.mouseMove, this);
 
     // Add zoom HUD
-    var distance = 10;
-    var buttonRect = new Rectangle(50 + distance*2, distance, 100, 50);
-
-    var randomOffset = new Button(buttonRect, 0x999999, null, "Random");
-    buttonRect.width = 50;
-    buttonRect.x -= buttonRect.width + distance;
-    var zoomIn = new Button(buttonRect, 0x999999, true);
-    buttonRect.y += zoomIn.height + distance;
-    var zoomOut = new Button(buttonRect, 0x999999, false);
-
-    zoomIn.setMouseClick(function() { v.zoom *= 1.5 });
-    zoomOut.setMouseClick(function() { v.zoom /= 1.5 });
-    randomOffset.setMouseClick(function() { renderer.randomOffset() });
-
-    stage.addChild(zoomIn);
-    stage.addChild(zoomOut);
-    stage.addChild(randomOffset);
+    var size = 50, space = 10, col = 0x999999;
+    stage.addChild(new Button(
+	new Rectangle(space, space, size, size), col,
+	function() { v.zoom *= 1.5 }, true
+    ));
+    stage.addChild(new Button(
+	new Rectangle(space, space*2 + size, size, size), col,
+	function() { v.zoom /= 1.5 }, false
+    ));
+    stage.addChild(new Button(
+	new Rectangle(space*2 + size, space, 2*size, size), col,
+	function() { renderer.randomOffset() }, null, "Random"
+    ));
+    stage.addChild(new Button(
+	new Rectangle(space*2 + size, space*2 + size, 2*size, size), col,
+	function() { v.reset() }, null, "Reset"
+    ));
 }
 
 Controller.prototype.mouseDown = function(e) {
@@ -108,7 +108,7 @@ Controller.prototype.mouseMove = function() {
 
 // Button
 
-function Button(rect, color, zoomIn = null, text = null) {
+function Button(rect, color, mouseClickAction = null, zoomIn = null, text = null) {
     Sprite.call(this);
     this.buttonMode = true;
 
@@ -143,6 +143,7 @@ function Button(rect, color, zoomIn = null, text = null) {
     this.mouseOut();
     this.addEventListener2(MouseEvent.MOUSE_OVER, this.mouseOver, this);
     this.addEventListener2(MouseEvent.MOUSE_OUT, this.mouseOut, this);
+    if (mouseClickAction) this.setMouseClick(mouseClickAction);
 }
 
 Button.prototype = new Sprite();
@@ -164,11 +165,17 @@ Button.prototype.setMouseClick = function(action) {
 // Viewport
 
 function Viewport(center, zoom) {
-    this.center = center;
-    this.zoom = zoom;
+    this.startCenter = center;
+    this.startZoom = zoom;
+    this.reset();
 }
 
 Viewport.DEFAULT_SIZE = new Point(4, 4);
+
+Viewport.prototype.reset = function() {
+    this.center = this.startCenter.clone();
+    this.zoom = this.startZoom;
+}
 
 Viewport.prototype.getRect = function() {
     var ratio = stage.stageWidth/stage.stageHeight;
