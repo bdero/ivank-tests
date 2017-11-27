@@ -1,9 +1,11 @@
 Array.prototype.removeObject = function(obj) {
     for (var i = 0; i < this.length; i++)
-	if (this[i] === obj) return this.splice(i, 1);
+        if (this[i] === obj) return this.splice(i, 1);
 
     return null;
 };
+
+var duration = 0;
 
 var stage, airport, background, airplaneData, textFormat, actedText;
 var airplanes = [], landing = [], takingoff = [], acted = 0;
@@ -31,18 +33,17 @@ function start() {
     // when loading/unloading WebGL textures (which I think happens upon drawing BitmapData not
     // presently attached to anything).
     stage.addChild(function() {
-	var a = new Bitmap(airplaneData);
-	a.y = -100;
-	return a;
+        var a = new Bitmap(airplaneData);
+        a.y = -100;
+        return a;
     }());
 
     actedText = new TextField();
     actedText.setTextFormat(new TextFormat(
-	"sans", 20, 0xddddff, false, false, TextFormatAlign.LEFT
+        "sans", 20, 0xddddff, false, false, TextFormatAlign.LEFT
     ));
     actedText.width = 400;
-    actedText.height = 20;
-    actedText.x = actedText.y = 10
+    actedText.height = 30;
     resetActedText();
     stage.addChild(actedText);
 
@@ -51,6 +52,8 @@ function start() {
 }
 
 function resetActedText() {
+    actedText.x = stage.stageWidth - 235;
+    actedText.y = 15;
     actedText.text = 'Traffic processed: ' + acted;
 }
 
@@ -61,53 +64,67 @@ function update() {
 
     previousTotalTime = totalTime;
     totalTime += dt/60;
+    duration += dt/60;
 
     // Scale everything
     airport.scaleX = airport.scaleY = stage.stageHeight/background.bitmapData.height;
     // Center everything
     airport.x = stage.stageWidth/2 - (background.bitmapData.width/2)*airport.scaleX;
-    //airport.y = stage.stageHeight/2 - background.bitmapData.height/2;
 
     var deltaTicks = Math.floor(totalTime*5) - Math.floor(previousTotalTime*5); // 5 ticks/second
     for (var i = 0; i < deltaTicks; i++) {
-	// Generate a new plane (15% chance * 5 chances per second)
-	if (Math.random() < 0.15) {
-	    var isLanding = Math.random() > 0.5;
-	    var queueToUse = isLanding ? landing : takingoff;
-	    var airplane = new Airplane(
-		WAIT_X + airplaneData.width*queueToUse.length,
-		isLanding ? AIR_Y : LAND_Y
-	    );
-	    queueToUse.push(airplane);
-	}
 
-	// signal another plane to act (maximum once per second - based on Airplane LANDING_TIME)
-	if (!runwayTimer) {
-	    var airplane = null;
-	    if (landing.length) airplane = landing.shift();
-	    else if (takingoff.length) airplane = takingoff.shift();
+        if ($("#run-simulation").is(":checked")) {
+            if (duration < $("#duration").val()) {
+                // Generate new planes (5 chances per second)
+                var planeFactory = function(isLanding, queue) {
+                    var airplane = new Airplane(
+                        WAIT_X + airplaneData.width * queue.length,
+                        isLanding ? AIR_Y : LAND_Y
+                    );
+                    queue.push(airplane);
+                };
+                if (Math.random() < $("#arrive-prob").val()/5) {
+                    planeFactory(true, landing);
+                }
+                if (Math.random() < $("#depart-prob").val()/5) {
+                    planeFactory(false, takingoff);
+                }
+            } else {
+                // Turn off the simulation
+                $("#run-simulation").click();
+            }
+        }
 
-	    if (airplane) {
-		airplane.destinationX = -airplane.bitmap.bitmapData.width;
-		airplane.destinationY = LAND_Y;
-		runwayTimer = Airplane.prototype.LANDING_TIME;
-		updateQueues();
-	    }
-	} else {
-	    runwayTimer--;
-	}
+        // signal another plane to act (maximum once per second - based on Airplane LANDING_TIME)
+        if (!runwayTimer) {
+            var airplane = null;
+            if (landing.length) airplane = landing.shift();
+            else if (takingoff.length) airplane = takingoff.shift();
+
+            if (airplane) {
+                airplane.destinationX = -airplane.bitmap.bitmapData.width;
+                airplane.destinationY = LAND_Y;
+                runwayTimer = Airplane.prototype.LANDING_TIME;
+                updateQueues();
+            }
+        } else {
+            runwayTimer--;
+        }
     }
 
     // Graphically update airplanes
     for (var i = 0; i < airplanes.length; i++)
-	airplanes[i].update(dt);
+        airplanes[i].update(dt);
+
+    resetActedText();
 }
 
 function updateQueues() {
     var queues = [landing, takingoff];
     for (var i in queues)
-	for (var j in queues[i])
-	    queues[i][j].destinationX = WAIT_X + airplaneData.width*j;
+        for (var j in queues[i])
+            queues[i][j].destinationX = WAIT_X + airplaneData.width*j;
 }
 
 function Airplane(x, y) {
@@ -144,9 +161,8 @@ Airplane.prototype.update = function(dt) {
     this.y += (this.destinationY - this.y)/10*dt;
 
     if (this.x < -this.bitmap.bitmapData.width/2) {
-	airplanes.removeObject(this);
-	airport.removeChild(this);
-	acted += 1;
-	resetActedText();
+        airplanes.removeObject(this);
+        airport.removeChild(this);
+        acted += 1;
     }
 };
